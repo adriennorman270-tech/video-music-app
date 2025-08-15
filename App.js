@@ -17,4 +17,56 @@ export default function App() {
   }, []);
 
   const startRecording = async () => {
-    if (cameraRef.curren
+    if (cameraRef.current) {
+      setIsRecording(true);
+      try {
+        const video = await cameraRef.current.recordAsync();
+        await MediaLibrary.createAssetAsync(video.uri);
+        console.log('Video saved:', video.uri);
+      } catch (error) {
+        console.warn('Recording failed:', error);
+      }
+      setIsRecording(false);
+    }
+  };
+
+  const stopRecording = () => {
+    if (cameraRef.current && isRecording) {
+      cameraRef.current.stopRecording();
+    }
+  };
+
+  if (hasPermission === null) return <View style={styles.container} />;
+  if (hasPermission === false) return <Text>No access to camera or media library</Text>;
+
+  return (
+    <View style={styles.container}>
+      <Camera ref={cameraRef} style={styles.camera} type={Camera.Constants.Type.back} />
+      <View style={styles.buttonContainer}>
+        <Button
+          title={isRecording ? "Stop Recording" : "Start Recording"}
+          onPress={isRecording ? stopRecording : startRecording}
+          color="#FF3B30"
+        />
+      </View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#000',
+  },
+  camera: {
+    flex: 1,
+  },
+  buttonContainer: {
+    position: 'absolute',
+    bottom: 40,
+    alignSelf: 'center',
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    padding: 10,
+  },
+});
